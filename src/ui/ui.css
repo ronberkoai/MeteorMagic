@@ -58,10 +58,11 @@ body { font-family: 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif; color: #f
   border: 1px solid rgba(255, 255, 255, 0.1); }
 .power.on { opacity: 1; border-color: rgba(200, 188, 255, 0.5); }
 
-.roomname { position: absolute; top: 18%; width: 100%; text-align: center; font-size: 30px; letter-spacing: 0.12em;
+.roomname { position: absolute; top: 18%; left: 50%; transform: translateX(-50%); padding: 8px 28px; border-radius: 40px;
+  background: radial-gradient(closest-side, rgba(5, 4, 14, 0.55), rgba(5, 4, 14, 0)); white-space: nowrap; text-align: center; font-size: 30px; letter-spacing: 0.12em;
   color: #ffe3b0; text-shadow: 0 0 14px rgba(0, 0, 0, 0.9), 0 0 24px rgba(255, 150, 60, 0.5);
   animation: roomname 3.6s ease forwards; }
-@keyframes roomname { 0% { opacity: 0; transform: translateY(8px); } 15%, 70% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+@keyframes roomname { 0% { opacity: 0; } 15%, 70% { opacity: 1; } 100% { opacity: 0; } }
 
 .sign { position: absolute; bottom: 7%; left: 50%; transform: translateX(-50%); max-width: 640px; padding: 12px 20px;
   background: rgba(30, 20, 12, 0.88); border: 1px solid rgba(255, 200, 130, 0.45); border-radius: 10px; font-size: 17px;
