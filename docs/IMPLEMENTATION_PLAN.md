@@ -2,6 +2,15 @@
 
 This plan builds on the roadmap from the original planning thread (greybox → vertical slice → production → polish) and folds in the fixes from [REVIEW.md](REVIEW.md). Durations assume one developer working part-time with AI assistance; treat them as estimates to be re-measured at each gate.
 
+## Status (test build)
+
+Phases 0 to 3 are done in a compact form: a playable 7-room vertical slice with two powers, two enemy types, a timed beacon puzzle, checkpoints, saves, procedural art, lighting and audio. Deviations from this plan are recorded in [DECISIONS.md](DECISIONS.md), notably ASCII rooms instead of LDtk (for now), procedural instead of AI-generated art, and Kinetic Surge as the second power.
+
+Next up:
+1. Run playtests ([PLAYTESTING.md](PLAYTESTING.md)) and tune the numbers in `src/shared/tuning.ts`.
+2. Art pipeline spike: replace the procedural hero, tiles and parallax with a consistent hand-made or AI-assisted set.
+3. Go/no-go gate, then Phase 4 (Astral Forge and the crystal mines).
+
 ## Guiding rules
 
 1. **Playable at every milestone.** Every merge to `main` deploys a build that can be opened from a link.

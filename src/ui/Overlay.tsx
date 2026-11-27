@@ -124,7 +124,7 @@ export function Overlay() {
             </button>
           </div>
           <Controls />
-          <p className="small">Test build · keyboard or gamepad · about 10–15 minutes</p>
+          <p className="small">Test build · needs a keyboard or gamepad · about 10–15 minutes · progress saves at campfires</p>
         </div>
       )}
 
