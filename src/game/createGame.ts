@@ -42,10 +42,16 @@ export function createGame(parent: HTMLElement): Phaser.Game {
       game.scene.stop('Intro');
       game.scene.start('Title');
       bus.emit('ui:paused', { paused: false });
+      audio.stopMusic();
     }),
+    bus.on('ui:paused', ({ paused }) => audio.setPaused(paused)),
+    bus.on('game:end', () => audio.stopMusic()),
   ];
   // Debug/test hook (used by the automated smoke test and for playtest support).
-  (window as unknown as { __MM__: unknown }).__MM__ = { game, session, bus };
-  game.events.once(Phaser.Core.Events.DESTROY, () => offs.forEach((off) => off()));
+  (window as unknown as { __MM__: unknown }).__MM__ = { game, session, bus, audio };
+  game.events.once(Phaser.Core.Events.DESTROY, () => {
+    offs.forEach((off) => off());
+    audio.stopMusic();
+  });
   return game;
 }
