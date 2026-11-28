@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { touch, latch } from '../../shared/touch';
 
 /** Action-based input: keyboard (two layouts) + standard gamepad. Edge detection is computed once per frame. */
 export interface InputFrame {
@@ -61,6 +62,7 @@ export class InputManager {
   }
 
   private held(a: Action): boolean {
+    if (touch[a] || latch.has(a)) return true;
     if (this.keys[a].some((k) => k.isDown)) return true;
     const pad = this.scene.input.gamepad?.pad1;
     if (!pad) return false;
@@ -77,6 +79,7 @@ export class InputManager {
   update(): InputFrame {
     const now: Record<Action, boolean> = {} as Record<Action, boolean>;
     (Object.keys(KEYS) as Action[]).forEach((a) => (now[a] = this.held(a)));
+    latch.clear();
     const pressed = (a: Action) => now[a] && !this.prev[a];
     this.frame = {
       left: now.left,

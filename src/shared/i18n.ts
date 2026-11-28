@@ -22,6 +22,10 @@ export const T = {
     'Test build · needs a keyboard or gamepad · about 10–15 minutes · progress saves at campfires',
     'גרסת בדיקה · נדרשים מקלדת או בקר · כ־10–15 דקות · ההתקדמות נשמרת ליד מדורות',
   ),
+  titleNoteTouch: bi(
+    'Test build · touch controls · best in landscape · about 10–15 minutes · progress saves at campfires',
+    'גרסת בדיקה · שליטה במגע · עדיף לרוחב · כ־10–15 דקות · ההתקדמות נשמרת ליד מדורות',
+  ),
   emberSiphon: bi('Ember Siphon', 'ספיגת רשף'),
   kineticSurge: bi('Kinetic Surge', 'הדף קינטי'),
   muted: bi('muted', 'מושתק'),
@@ -34,6 +38,17 @@ export const T = {
   falls: bi('falls', 'נפילות'),
   heartShards: bi('heart shards', 'רסיסי לב'),
   thanks: bi('Thanks for playing! Tell us where you got stuck and what felt great.', 'תודה ששיחקתם! ספרו לנו איפה נתקעתם ומה הרגיש מעולה.'),
+  touch: {
+    jump: bi('Jump', 'קפיצה'),
+    siphon: bi('Siphon', 'ספיגה'),
+    release: bi('Fire', 'אש'),
+    dash: bi('Dash', 'זינוק'),
+  },
+  touchHint: bi(
+    'Left thumb: drag anywhere to move (up/down to aim, down + Jump to drop). Right thumb: Jump, Siphon, Fire, Dash.',
+    'אגודל שמאל: גררו בכל מקום כדי לזוז (למעלה/למטה לכיוון, למטה + קפיצה לירידה). אגודל ימין: קפיצה, ספיגה, אש, זינוק.',
+  ),
+  rotate: bi('Turn your phone sideways to play', 'סובבו את הטלפון לרוחב כדי לשחק'),
   toast: {
     beacons: [bi('The beacons answer', 'המשואות עונות'), bi('Somewhere a stone door grinds open.', 'איפשהו נפתחת דלת אבן בחריקה.')],
     kinetic: [
