@@ -1,4 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import { TouchControls } from './TouchControls';
+import { isTouchDevice } from '../shared/touch';
+
+const IS_TOUCH = isTouchDevice();
 import { bus, ChargeState, EndStats, HudState } from '../shared/eventBus';
 import { Bi, T } from '../shared/i18n';
 import { formatTime } from '../logic/GameState';
@@ -100,6 +104,7 @@ export function Overlay() {
   }, []);
 
   const start = (continueSave: boolean, intro = !continueSave) => {
+    if (IS_TOUCH) goFullscreen();
     setToasts([]);
     setSign(null);
     setEnd(null);
@@ -116,8 +121,15 @@ export function Overlay() {
   const showHud = screen === 'playing' || screen === 'paused';
 
   return (
-    <div className="overlay">
+    <div className={IS_TOUCH ? 'overlay is-touch' : 'overlay'}>
       <div className="vignette" />
+      {IS_TOUCH && screen === 'playing' && <TouchControls dash={hud.dash} />}
+      {IS_TOUCH && (
+        <div className="rotate-hint">
+          <span className="rotate-icon">⟳</span>
+          <B t={T.rotate} />
+        </div>
+      )}
       {screen === 'loading' && (
         <div className="center loading">
           <B t={T.loading} />
@@ -152,7 +164,7 @@ export function Overlay() {
           </div>
           <Controls />
           <p className="small">
-            <B t={T.titleNote} />
+            <B t={IS_TOUCH ? T.titleNoteTouch : T.titleNote} />
           </p>
         </div>
       )}
@@ -282,6 +294,12 @@ export function Overlay() {
 }
 
 function Controls() {
+  if (IS_TOUCH)
+    return (
+      <p className="touch-hint">
+        <B t={T.touchHint} />
+      </p>
+    );
   return (
     <table className="controls">
       <tbody>
@@ -304,4 +322,19 @@ function Controls() {
       </tbody>
     </table>
   );
+}
+
+/** Phones: fill the screen and prefer landscape. Both can fail silently (iOS Safari has no fullscreen for pages). */
+function goFullscreen() {
+  const el = document.documentElement as HTMLElement & { webkitRequestFullscreen?: () => void };
+  try {
+    if (!document.fullscreenElement) {
+      const p = el.requestFullscreen?.() ?? el.webkitRequestFullscreen?.();
+      Promise.resolve(p)
+        .then(() => (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> })?.lock?.('landscape'))
+        .catch(() => {});
+    }
+  } catch {
+    /* not supported */
+  }
 }

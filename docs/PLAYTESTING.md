@@ -25,6 +25,16 @@ All text is shown in both Hebrew and English. A new game opens with a short scen
 | Pause | Esc or P | Start |
 | Mute | M | — |
 
+## Playing on a phone
+
+Open the same link on a phone and turn it sideways. On-screen controls appear automatically:
+
+- **Left thumb**: touch anywhere on the left side and drag to move. Drag up or down to aim. Drag down and press Jump to drop through planks.
+- **Right thumb**: **Jump**, **Siphon**, **Fire**, and **Dash** (it lights up once you find the Kinetic Surge).
+- **❚❚** at the top pauses.
+
+Add `?touch` to the link to force the touch controls on a laptop with a touchscreen.
+
 ## Questions for testers
 
 - Where did you get stuck, and for how long? Did the signs explain enough?
