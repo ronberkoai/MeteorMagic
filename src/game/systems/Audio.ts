@@ -8,7 +8,7 @@ const NOTES_DARK = [110, 130.81, 146.83, 164.81, 174.61, 196, 220];
 const NOTES_FANTASY = [261.63, 293.66, 329.63, 392, 440, 523.25, 587.33];
 
 class AudioEngine {
-  private ctx: AudioContext | null = null;
+  ctx: AudioContext | null = null;
   private master!: GainNode;
   private sfxBus!: GainNode;
   private musicBus!: GainNode;
@@ -16,7 +16,14 @@ class AudioEngine {
   private current: Bed | null = null;
   private nextNoteAt = 0;
   private noteStep = 0;
+  private paused = false;
+  private suspendTimer: number | undefined;
   muted = false;
+
+  /** True while a music bed is active (gameplay or intro running). */
+  get playing() {
+    return this.current !== null;
+  }
 
   init() {
     if (this.ctx) {
@@ -36,6 +43,47 @@ class AudioEngine {
     this.musicBus.gain.value = 0.32;
     this.musicBus.connect(this.master);
     this.beds = { dark: this.makeDrone([55, 82.4, 110.5], 420), fantasy: this.makeDrone([130.81, 196, 261.63], 900) };
+    // Never keep humming in a background tab.
+    document.addEventListener('visibilitychange', () => this.syncContext());
+  }
+
+  /** Run the AudioContext only while the tab is visible and a game/intro is active. */
+  private syncContext() {
+    if (!this.ctx) return;
+    window.clearTimeout(this.suspendTimer);
+    const shouldRun = !document.hidden && this.current !== null;
+    if (shouldRun) {
+      if (this.ctx.state === 'suspended') void this.ctx.resume();
+    } else if (this.ctx.state === 'running') {
+      void this.ctx.suspend();
+    }
+  }
+
+  /** Fade out all music and suspend audio entirely (title screen, end screen, game torn down). */
+  stopMusic() {
+    if (!this.ctx || !this.beds) return;
+    const t = this.ctx.currentTime;
+    (Object.keys(this.beds) as Bed[]).forEach((b) => {
+      const g = this.beds![b].gain.gain;
+      g.cancelScheduledValues(t);
+      g.setValueAtTime(g.value, t);
+      g.linearRampToValueAtTime(0, t + 0.6);
+    });
+    this.current = null;
+    window.clearTimeout(this.suspendTimer);
+    // Let the fade (and any final sfx) finish, then stop the oscillators' clock.
+    this.suspendTimer = window.setTimeout(() => this.syncContext(), 1200);
+  }
+
+  /** Silence the music bed while the game is paused (sfx bus is unaffected). */
+  setPaused(paused: boolean) {
+    this.paused = paused;
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const g = this.musicBus.gain;
+    g.cancelScheduledValues(t);
+    g.setValueAtTime(g.value, t);
+    g.linearRampToValueAtTime(paused ? 0 : 0.32, t + 0.25);
   }
 
   toggleMute(): boolean {
@@ -79,7 +127,11 @@ class AudioEngine {
   }
 
   setMusic(bed: Bed) {
-    if (!this.ctx || !this.beds || this.current === bed) return;
+    if (!this.ctx || !this.beds) return;
+    if (this.paused) this.setPaused(false);
+    if (this.current === bed) return;
+    this.current = bed;
+    this.syncContext();
     const t = this.ctx.currentTime;
     (Object.keys(this.beds) as Bed[]).forEach((b) => {
       const g = this.beds![b].gain.gain;
@@ -87,12 +139,11 @@ class AudioEngine {
       g.setValueAtTime(g.value, t);
       g.linearRampToValueAtTime(b === bed ? 1 : 0, t + 1.5);
     });
-    this.current = bed;
   }
 
   /** Call every frame: schedules a sparse melodic layer on top of the drone. */
   tick() {
-    if (!this.ctx || !this.current || this.muted) return;
+    if (!this.ctx || !this.current || this.muted || this.paused) return;
     const t = this.ctx.currentTime;
     if (this.nextNoteAt < t) this.nextNoteAt = t + 0.1;
     while (this.nextNoteAt < t + 0.2) {
