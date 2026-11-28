@@ -29,7 +29,7 @@ export const PALETTES: Record<Mood, MoodPalette> = {
     far: '#1b1424', mid: '#120d18', near: '#0a0710',
     rock: '#2b2431', rockDark: '#1a1520', rockLight: '#3c3242',
     top: '#4d3f47', topLight: '#6e5a5f', plank: '#4a3426',
-    ambient: 0x05040c, ambientAlpha: 0.8, stars: true, celestial: 'meteor', midKind: 'ruins', particles: 'embers', music: 'dark',
+    ambient: 0x05040c, ambientAlpha: 0.74, stars: true, celestial: 'meteor', midKind: 'ruins', particles: 'embers', music: 'dark',
   },
   dusk: {
     skyTop: '#1a1638', skyBottom: '#d8664a', horizonGlow: '#ffb36b',
@@ -57,7 +57,7 @@ export const PALETTES: Record<Mood, MoodPalette> = {
     far: '#15132a', mid: '#0d0b19', near: '#07060f',
     rock: '#2a2620', rockDark: '#1a1813', rockLight: '#3b352c',
     top: '#4a4234', topLight: '#665a44', plank: '#4b3422',
-    ambient: 0x02030c, ambientAlpha: 0.74, stars: true, celestial: 'moon', midKind: 'tents', particles: 'embers', music: 'dark',
+    ambient: 0x02030c, ambientAlpha: 0.7, stars: true, celestial: 'moon', midKind: 'tents', particles: 'embers', music: 'dark',
   },
 };
 

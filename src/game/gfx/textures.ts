@@ -77,23 +77,7 @@ function drawHero(ctx: Ctx, ox: number, p: HeroPose) {
   const fx = ox + 16 + p.lean;
   const ground = 47;
   const hipY = ground - 13 + p.bob;
-  // scarf trailing behind (character faces right)
-  ctx.fillStyle = '#e8562a';
-  ctx.beginPath();
-  const sy = hipY - 18;
-  ctx.moveTo(fx - 3, sy);
-  for (let i = 0; i <= 4; i++) {
-    const x = fx - 4 - i * 3.2;
-    const y = sy + 1 + Math.sin(p.scarf + i * 0.9) * 2 + i * 0.6;
-    ctx.lineTo(x, y);
-  }
-  for (let i = 4; i >= 0; i--) {
-    const x = fx - 4 - i * 3.2;
-    const y = sy + 4.5 + Math.sin(p.scarf + i * 0.9) * 2 + i * 0.9;
-    ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-  ctx.fill();
+  // (the scarf is a separate physics rope, see Player.ts)
   // legs
   const leg = (dx: number, shade: string) => {
     ctx.fillStyle = shade;
@@ -636,7 +620,80 @@ function objects(scene: Phaser.Scene) {
   });
 }
 
+
+function scenery(scene: Phaser.Scene) {
+  // village cottage for the opening scene
+  addSingle(scene, 'house', 120, 100, (ctx) => {
+    ctx.fillStyle = '#6b4a32';
+    ctx.fillRect(14, 44, 92, 56);
+    ctx.fillStyle = '#7d5a3e';
+    for (let y = 48; y < 100; y += 10) ctx.fillRect(14, y, 92, 2);
+    ctx.fillStyle = '#4a2f22';
+    ctx.beginPath();
+    ctx.moveTo(4, 48);
+    ctx.lineTo(60, 8);
+    ctx.lineTo(116, 48);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#5e3b2a';
+    for (let i = 0; i < 5; i++) ctx.fillRect(14 + i * 18, 30 - (i < 3 ? i * 6 : (4 - i) * 6), 2, 18);
+    ctx.fillStyle = '#3a2418';
+    ctx.fillRect(80, 14, 10, 22);
+    ctx.fillStyle = '#ffcf7a';
+    ctx.fillRect(28, 60, 16, 14);
+    ctx.fillRect(76, 60, 16, 14);
+    ctx.fillStyle = '#4a2f22';
+    ctx.fillRect(35, 60, 2, 14);
+    ctx.fillRect(28, 66, 16, 2);
+    ctx.fillRect(83, 60, 2, 14);
+    ctx.fillRect(76, 66, 16, 2);
+    ctx.fillStyle = '#3a2418';
+    ctx.fillRect(52, 70, 16, 30);
+  });
+  // grass tuft that sways
+  addSingle(scene, 'tuft', 18, 16, (ctx) => {
+    const blades = [[3, 10, -2], [6, 14, -1], [9, 16, 0], [12, 13, 1], [15, 9, 2]];
+    for (const [x, h, lean] of blades) {
+      ctx.strokeStyle = h > 12 ? '#6fd57a' : '#3fae5c';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, 16);
+      ctx.quadraticCurveTo(x, 16 - h * 0.6, x + lean * 2, 16 - h);
+      ctx.stroke();
+    }
+  });
+  // soft light ray for sunny rooms
+  addSingle(scene, 'ray', 160, 512, (ctx) => {
+    const g = ctx.createLinearGradient(0, 0, 0, 512);
+    g.addColorStop(0, 'rgba(255,250,220,0.55)');
+    g.addColorStop(1, 'rgba(255,250,220,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(60, 0);
+    ctx.lineTo(100, 0);
+    ctx.lineTo(160, 512);
+    ctx.lineTo(0, 512);
+    ctx.closePath();
+    ctx.fill();
+  });
+  // drifting fog band (tiles horizontally)
+  addSingle(scene, 'fog', 512, 160, (ctx) => {
+    for (let i = 0; i < 26; i++) {
+      const x = (i * 97) % 512;
+      const y = 60 + ((i * 53) % 70);
+      const r = 40 + ((i * 31) % 50);
+      for (const dx of [-512, 0, 512]) {
+        radial(ctx, x + dx, y, r, [
+          [0, 'rgba(255,255,255,0.18)'],
+          [1, 'rgba(255,255,255,0)'],
+        ]);
+      }
+    }
+  });
+}
+
 export function generateTextures(scene: Phaser.Scene) {
+  scenery(scene);
   heroSheet(scene);
   banditSheets(scene);
   objects(scene);

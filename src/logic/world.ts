@@ -6,13 +6,13 @@ export const START_ROOM = 'crater';
 export const ROOMS: RoomDef[] = [
   {
     id: "crater",
-    name: "The Burning Crater",
+    name: { en: "The Burning Crater", he: "המכתש הבוער" },
     mood: "dark",
     worldX: 0,
     worldY: 0,
     signs: [
-      "Move with A / D or the arrow keys. Jump with Space.",
-      "The bandits burned the village... and the meteor chose you.",
+      { en: "Move with A / D or the arrow keys. Jump with Space.", he: "תנועה עם A / D או מקשי החיצים. קפיצה עם רווח." },
+      { en: "The bandits burned the village... and the meteor chose you.", he: "השודדים שרפו את הכפר... והמטאור בחר בכם." },
     ],
     rows: [
       '##......................................',
@@ -36,14 +36,14 @@ export const ROOMS: RoomDef[] = [
   },
   {
     id: "village",
-    name: "Village Entrance",
+    name: { en: "Village Entrance", he: "מבואת הכפר" },
     mood: "dark",
     worldX: 40,
     worldY: 0,
     signs: [
-      "Tap E near a fire to SIPHON it. Tap F to RELEASE it as a fireball.",
-      "Hold W / S or up / down while releasing to aim.",
-      "A cracked wall. Something stronger than fire could break it.",
+      { en: "Tap E near a fire to SIPHON it. Tap F to RELEASE it as a fireball.", he: "הקישו E ליד אש כדי לספוג אותה. הקישו F כדי לשחרר אותה ככדור אש." },
+      { en: "Hold W / S or up / down while releasing to aim.", he: "החזיקו W / S או חץ למעלה / למטה בזמן השחרור כדי לכוון." },
+      { en: "A cracked wall. Something stronger than fire could break it.", he: "קיר סדוק. משהו חזק יותר מאש יוכל לשבור אותו." },
     ],
     rows: [
       '...............###............##................',
@@ -67,13 +67,13 @@ export const ROOMS: RoomDef[] = [
   },
   {
     id: "bridge",
-    name: "The Burned Bridge",
+    name: { en: "The Burned Bridge", he: "הגשר השרוף" },
     mood: "dusk",
     worldX: 88,
     worldY: 0,
     signs: [
-      "Campfires restore you and mark where you return after falling in battle.",
-      "Bandit arrows burn too. Siphon them out of the air and send them back!",
+      { en: "Campfires restore you and mark where you return after falling in battle.", he: "מדורות מרפאות אתכם ומסמנות את המקום שאליו תחזרו אם תיפלו בקרב." },
+      { en: "Bandit arrows burn too. Siphon them out of the air and send them back!", he: "גם החצים של השודדים בוערים. ספגו אותם מהאוויר ושלחו אותם בחזרה!" },
     ],
     rows: [
       '........................................................',
@@ -97,14 +97,14 @@ export const ROOMS: RoomDef[] = [
   },
   {
     id: "forest",
-    name: "Edge of the Glowing Forest",
+    name: { en: "Edge of the Glowing Forest", he: "שולי היער הזוהר" },
     mood: "fantasy",
     worldX: 144,
     worldY: 0,
     signs: [
-      "Color returns. The bandits have not reached this far... yet.",
-      "Steps lead down into an old temple.",
-      "This wall is cracked. A burst of force might break through.",
+      { en: "Color returns. The bandits have not reached this far... yet.", he: "הצבעים חוזרים. השודדים עוד לא הגיעו עד לכאן... בינתיים." },
+      { en: "Steps lead down into an old temple.", he: "מדרגות יורדות אל מקדש עתיק." },
+      { en: "This wall is cracked. A burst of force might break through.", he: "הקיר הזה סדוק. פרץ של כוח אולי יפרוץ אותו." },
     ],
     rows: [
       '...........................................#',
@@ -128,14 +128,14 @@ export const ROOMS: RoomDef[] = [
   },
   {
     id: "temple",
-    name: "Temple of Beacons",
+    name: { en: "Temple of Beacons", he: "מקדש המשואות" },
     mood: "temple",
     worldX: 144,
     worldY: 17,
     brazierBurnMs: 14000,
     signs: [
-      "Two beacons. Light them both before the first one fades.",
-      "A meteor shard pulses with force.",
+      { en: "Two beacons. Light them both before the first one fades.", he: "שתי משואות. הדליקו את שתיהן לפני שהראשונה דועכת." },
+      { en: "A meteor shard pulses with force.", he: "רסיס מטאור פועם בכוח." },
     ],
     rows: [
       '###################.....####################',
@@ -164,12 +164,12 @@ export const ROOMS: RoomDef[] = [
   },
   {
     id: "cliffs",
-    name: "Windswept Cliffs",
+    name: { en: "Windswept Cliffs", he: "הצוקים הסחופים" },
     mood: "fantasy",
     worldX: 188,
     worldY: -6,
     signs: [
-      "Shift or K: KINETIC SURGE. Dash, even in mid-air.",
+      { en: "Shift or K: KINETIC SURGE. Dash, even in mid-air.", he: "Shift או K: הדף קינטי. זינוק, גם באוויר." },
     ],
     rows: [
       '########################################################',
@@ -199,12 +199,12 @@ export const ROOMS: RoomDef[] = [
   },
   {
     id: "camp",
-    name: "Bandit Patrol Camp",
+    name: { en: "Bandit Patrol Camp", he: "מחנה הסיור של השודדים" },
     mood: "night",
     worldX: 244,
     worldY: 0,
     signs: [
-      "The patrol camp. Defeat every bandit to break the gate.",
+      { en: "The patrol camp. Defeat every bandit to break the gate.", he: "מחנה הסיור. הביסו את כל השודדים כדי לפרוץ את השער." },
     ],
     rows: [
       '..............................................##',

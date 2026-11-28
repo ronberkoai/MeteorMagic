@@ -1,3 +1,5 @@
+import type { Bi } from './i18n';
+
 /** Narrow, typed bridge between Phaser (game) and React (UI). Only discrete events cross it. */
 export interface HudState {
   health: number;
@@ -23,13 +25,16 @@ export interface Events {
   'hud:update': HudState;
   'hud:charge': ChargeState;
   'hud:siphon': { cooldownMs: number };
-  'ui:toast': { title: string; body: string };
-  'ui:sign': { text: string | null };
-  'ui:room': { name: string };
+  'ui:toast': { title: Bi; body: Bi };
+  'ui:sign': { text: Bi | null };
+  'ui:room': { name: Bi };
+  'ui:caption': { text: Bi | null };
+  'ui:intro': { active: boolean };
   'ui:paused': { paused: boolean };
   'game:end': EndStats;
   'game:ready': Record<string, never>;
-  'cmd:start': { continueSave: boolean };
+  'cmd:start': { continueSave: boolean; intro?: boolean };
+  'cmd:skipIntro': Record<string, never>;
   'cmd:resume': Record<string, never>;
   'cmd:quitToTitle': Record<string, never>;
 }

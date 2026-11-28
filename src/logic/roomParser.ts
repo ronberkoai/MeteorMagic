@@ -3,6 +3,8 @@
  * The format maps 1:1 to LDtk concepts (IntGrid collisions + entity layer + level fields + world position),
  * so a LDtk importer can replace it later without touching game code.
  */
+import type { Bi } from '../shared/i18n';
+
 export type Mood = 'dark' | 'dusk' | 'fantasy' | 'temple' | 'night';
 
 export const SOLID = 1;
@@ -27,13 +29,13 @@ export type EntityKind =
 
 export interface RoomDef {
   id: string;
-  name: string;
+  name: Bi;
   mood: Mood;
   /** World position in tiles (like LDtk GridVania worldX / worldY). */
   worldX: number;
   worldY: number;
   rows: string[];
-  signs?: string[];
+  signs?: Bi[];
   /** Burn time for this room's brazier puzzle; omitted = default. */
   brazierBurnMs?: number;
 }
@@ -46,7 +48,7 @@ export interface RoomEntity {
   uid: string;
   /** Index among entities of the same kind in this room (row-major order). */
   index: number;
-  text?: string;
+  text?: Bi;
 }
 
 export interface ParsedRoom {
@@ -106,7 +108,7 @@ export function parseRoom(def: RoomDef): ParsedRoom {
         counters[kind] = index + 1;
         const ent: RoomEntity = { kind, tx, ty, index, uid: `${def.id}:${kind}:${tx},${ty}` };
         if (kind === 'sign') {
-          ent.text = def.signs?.[signIndex] ?? '';
+          ent.text = def.signs?.[signIndex] ?? { en: '', he: '' };
           signIndex++;
         }
         entities.push(ent);
