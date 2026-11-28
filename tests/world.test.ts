@@ -62,11 +62,14 @@ describe('world data', () => {
   });
 
   it('signs all have text', () => {
-    for (const r of parsed) for (const e of r.entities.filter((e) => e.kind === 'sign')) expect(e.text, e.uid).toBeTruthy();
+    for (const r of parsed) for (const e of r.entities.filter((e) => e.kind === 'sign')) {
+        expect(e.text?.en, e.uid).toBeTruthy();
+        expect(e.text?.he, e.uid).toBeTruthy();
+      }
   });
 
   it('merges horizontal solid runs', () => {
-    const r = parseRoom({ id: 't', name: 't', mood: 'dark', worldX: 0, worldY: 0, rows: ['##.#', '####'] });
+    const r = parseRoom({ id: 't', name: { en: 't', he: 't' }, mood: 'dark', worldX: 0, worldY: 0, rows: ['##.#', '####'] });
     expect(mergedRuns(r, SOLID)).toEqual([
       { tx: 0, ty: 0, w: 2 },
       { tx: 3, ty: 0, w: 1 },
@@ -75,8 +78,8 @@ describe('world data', () => {
   });
 
   it('rejects ragged rows and unknown tiles', () => {
-    expect(() => parseRoom({ id: 'x', name: '', mood: 'dark', worldX: 0, worldY: 0, rows: ['##', '#'] })).toThrow();
-    expect(() => parseRoom({ id: 'x', name: '', mood: 'dark', worldX: 0, worldY: 0, rows: ['#?'] })).toThrow();
+    expect(() => parseRoom({ id: 'x', name: { en: '', he: '' }, mood: 'dark', worldX: 0, worldY: 0, rows: ['##', '#'] })).toThrow();
+    expect(() => parseRoom({ id: 'x', name: { en: '', he: '' }, mood: 'dark', worldX: 0, worldY: 0, rows: ['#?'] })).toThrow();
   });
 });
 

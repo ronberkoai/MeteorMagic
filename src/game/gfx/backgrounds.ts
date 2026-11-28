@@ -260,6 +260,14 @@ export class Parallax {
     }
   }
 
+  setVisible(v: boolean) {
+    this.layers.forEach(({ ts }) => ts.setVisible(v));
+  }
+
+  isVisible() {
+    return this.layers[0]?.ts.visible ?? false;
+  }
+
   /** Scroll on its own (title screen). */
   drift(dt: number) {
     for (const { ts, f } of this.layers) {

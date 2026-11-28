@@ -3,6 +3,7 @@ import { TUNING, VIEW_H, VIEW_W } from '../shared/tuning';
 import { BootScene } from './scenes/BootScene';
 import { GameScene, GameSceneData } from './scenes/GameScene';
 import { TitleScene } from './scenes/TitleScene';
+import { IntroScene } from './scenes/IntroScene';
 import { bus } from '../shared/eventBus';
 import { session } from './session';
 import { audio } from './systems/Audio';
@@ -18,17 +19,19 @@ export function createGame(parent: HTMLElement): Phaser.Game {
     input: { gamepad: true },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     render: { antialias: true, roundPixels: true },
-    scene: [BootScene, TitleScene, GameScene],
+    scene: [BootScene, TitleScene, IntroScene, GameScene],
   });
 
   const offs = [
-    bus.on('cmd:start', ({ continueSave }) => {
+    bus.on('cmd:start', ({ continueSave, intro }) => {
       audio.init();
       if (!(continueSave && session.loadSave())) session.newGame();
       const cp = session.state.checkpoint;
+      const data: GameSceneData = { room: cp.room, x: cp.x, y: cp.y, mode: 'start' };
       game.scene.stop('Title');
       game.scene.stop('Game');
-      game.scene.start('Game', { room: cp.room, x: cp.x, y: cp.y, mode: 'start' } satisfies GameSceneData);
+      game.scene.stop('Intro');
+      game.scene.start(intro ? 'Intro' : 'Game', data);
     }),
     bus.on('cmd:resume', () => {
       if (game.scene.isPaused('Game')) game.scene.resume('Game');
@@ -36,6 +39,7 @@ export function createGame(parent: HTMLElement): Phaser.Game {
     }),
     bus.on('cmd:quitToTitle', () => {
       game.scene.stop('Game');
+      game.scene.stop('Intro');
       game.scene.start('Title');
       bus.emit('ui:paused', { paused: false });
     }),

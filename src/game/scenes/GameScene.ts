@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { BrazierPuzzle } from '../../logic/BrazierPuzzle';
 import { findRoomAt, mergedRuns, ONEWAY, ParsedRoom, RoomEntity, SOLID, SPIKES, tileAt } from '../../logic/roomParser';
 import { bus } from '../../shared/eventBus';
+import { Bi, T } from '../../shared/i18n';
 import { TILE, TUNING, VIEW_H, VIEW_W } from '../../shared/tuning';
 import { Archer, Brute, Enemy, EnemyHost } from '../entities/Enemies';
 import { Player } from '../entities/Player';
@@ -75,8 +76,8 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private fireSources: FireSource[] = [];
   private braziers: Brazier[] = [];
   private puzzle: BrazierPuzzle | null = null;
-  private signs: { x: number; y: number; text: string }[] = [];
-  private currentSign: string | null = null;
+  private signs: { x: number; y: number; text: Bi }[] = [];
+  private currentSign: Bi | null = null;
   private absorbedThisWindow = false;
   private lastSafe = { x: 0, y: 0 };
   private transitioning = false;
@@ -85,6 +86,9 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private ended = false;
   private lastGhost = 0;
   private hadEnemies = false;
+  private tufts: { img: Phaser.GameObjects.Image; phase: number; angle: number }[] = [];
+  private fog: Phaser.GameObjects.TileSprite | null = null;
+  private rays: Phaser.GameObjects.Image[] = [];
 
   constructor() {
     super('Game');
@@ -104,6 +108,9 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     this.gateOpen = false;
     this.ended = false;
     this.hadEnemies = false;
+    this.tufts = [];
+    this.fog = null;
+    this.rays = [];
   }
 
   // ------------------------------------------------------------------ build
@@ -135,7 +142,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     this.fireballs = this.physics.add.group({ allowGravity: false });
     this.arrows = this.physics.add.group({ allowGravity: false });
 
-    for (const run of mergedRuns(room, SOLID)) this.addZone(this.solids, run.tx, run.ty, run.w, 1);
+    for (const run of mergedRuns(room, SOLID)) this.addZone(this.solids, run.tx, run.ty, run.w, 1).setData('solid', true);
     for (const run of mergedRuns(room, ONEWAY)) {
       const z = this.addZone(this.oneways, run.tx, run.ty, run.w, 0.3, 0);
       const b = z.body as Phaser.Physics.Arcade.StaticBody;
@@ -170,12 +177,13 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
         this.dust(this.player.x, this.player.arcade.bottom, 8);
       }
     };
+    this.player.onRunDust = (x, y) => this.dust(x, y, 2, room.def.mood === 'fantasy' ? 0xc8d8a8 : 0xa89888);
     this.player.onDash = () => {
       audio.sfx('dash');
       this.dust(this.player.x, this.player.y, 10, 0x9b8cff);
     };
 
-    this.playerLight = this.darkness.add({ x: d.x, y: d.y, radius: 150, color: 0x8f7dff, follow: this.player.body, offsetY: -6, glowAlpha: 0.22 });
+    this.playerLight = this.darkness.add({ x: d.x, y: d.y, radius: 175, color: 0x8f7dff, follow: this.player.body, offsetY: -6, glowAlpha: 0.22 });
     this.chargeTrail = this.add.particles(0, 0, 'dot', {
       follow: this.player.body,
       lifespan: 500,
@@ -191,10 +199,11 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     this.inputMgr = new InputManager(this);
     this.setupColliders();
     this.setupAmbient();
+    this.setupAtmosphere();
 
     const cam = this.cameras.main;
     cam.setBounds(0, 0, W, H);
-    cam.startFollow(this.player.body, true, 0.14, 0.14, 0, 30);
+    cam.startFollow(this.player.body, true, 0.1, 0.09, -(d.facing ?? 1) * 60, 30);
     cam.setRoundPixels(true);
     cam.fadeIn(d.mode === 'enter' ? 160 : 500);
 
@@ -220,6 +229,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private tileImage(group: Phaser.Physics.Arcade.StaticGroup, ent: RoomEntity, key: string): Tile {
     const img = group.create(ent.tx * TILE + TILE / 2, ent.ty * TILE + TILE / 2, key) as Tile;
     img.ent = ent;
+    img.setData('solid', true);
     img.setDepth(4);
     img.refreshBody();
     this.blocked.add(`${ent.tx},${ent.ty}`);
@@ -321,7 +331,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       }
       case 'sign':
         this.add.image(cx, by - 16, 'sign').setDepth(3);
-        this.signs.push({ x: cx, y: by - 16, text: ent.text ?? '' });
+        this.signs.push({ x: cx, y: by - 16, text: ent.text ?? { en: '', he: '' } });
         break;
     }
   }
@@ -398,6 +408,69 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     }
   }
 
+  /** Swaying grass, light rays and drifting fog: small things that make the world feel alive. */
+  private setupAtmosphere() {
+    const mood = this.room.def.mood;
+    const room = this.room;
+    if (mood === 'fantasy' || mood === 'dusk') {
+      for (let ty = 1; ty < room.height; ty++)
+        for (let tx = 0; tx < room.width; tx++) {
+          if (tileAt(room, tx, ty) !== SOLID || tileAt(room, tx, ty - 1) !== 0) continue;
+          if (room.entities.some((e) => e.tx === tx && e.ty === ty - 1)) continue;
+          const n = mood === 'fantasy' ? 2 : 1;
+          for (let k = 0; k < n; k++) {
+            if (Math.random() > (mood === 'fantasy' ? 0.55 : 0.25)) continue;
+            const img = this.add
+              .image(tx * TILE + 6 + Math.random() * 20, ty * TILE + 2, 'tuft')
+              .setOrigin(0.5, 1)
+              .setDepth(21)
+              .setScale(0.8 + Math.random() * 0.5)
+              .setTint(mood === 'dusk' ? 0x9a8a5a : 0xffffff);
+            this.tufts.push({ img, phase: Math.random() * Math.PI * 2, angle: 0 });
+          }
+        }
+    }
+    if (mood === 'fantasy') {
+      for (let i = 0; i < 4; i++) {
+        const ray = this.add
+          .image(120 + i * 260 + Math.random() * 60, -20, 'ray')
+          .setOrigin(0.5, 0)
+          .setScrollFactor(0.25, 0)
+          .setBlendMode(Phaser.BlendModes.ADD)
+          .setDepth(-10)
+          .setAngle(-14)
+          .setScale(1.4 + Math.random() * 0.6, 1.2)
+          .setAlpha(0.18);
+        this.tweens.add({ targets: ray, alpha: 0.06, duration: 3000 + i * 700, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+        this.rays.push(ray);
+      }
+    } else {
+      const tint = mood === 'temple' ? 0xd9b98a : mood === 'dusk' ? 0xb8a0b0 : 0x6a6a8a;
+      this.fog = this.add.tileSprite(0, VIEW_H - 170, VIEW_W, 160, 'fog').setOrigin(0, 0).setScrollFactor(0).setDepth(22).setTint(tint).setAlpha(mood === 'temple' ? 0.35 : 0.5);
+    }
+  }
+
+  private updateAtmosphere(time: number, dt: number) {
+    const px = this.player.x;
+    const py = this.player.arcade.bottom;
+    const vx = this.player.arcade.velocity.x;
+    for (const t of this.tufts) {
+      const dx = t.img.x - px;
+      let target = Math.sin(time * 0.0018 + t.phase + t.img.x * 0.01) * 6;
+      if (Math.abs(dx) < 24 && Math.abs(t.img.y - py) < 20) target += Math.sign(dx || vx) * 30 * (1 - Math.abs(dx) / 24);
+      t.angle += (target - t.angle) * Math.min(1, dt / 90);
+      t.img.setAngle(t.angle);
+    }
+    if (this.fog) this.fog.tilePositionX = this.cameras.main.scrollX * 0.7 + time * 0.012;
+    // camera look-ahead in the facing direction, and a peek downward during long falls
+    const cam = this.cameras.main;
+    const b = this.player.arcade;
+    const tx = -this.player.facing * 70 * Phaser.Math.Clamp(Math.abs(b.velocity.x) / 120, 0.3, 1);
+    const ty = b.velocity.y > 450 ? -70 : 30;
+    cam.followOffset.x += (tx - cam.followOffset.x) * Math.min(1, dt / 600);
+    cam.followOffset.y += (ty - cam.followOffset.y) * Math.min(1, dt / 400);
+  }
+
   // ------------------------------------------------------------------ EnemyHost
 
   isBlockedTile(tx: number, ty: number) {
@@ -457,11 +530,12 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
 
     const charged = session.energy.charge !== null;
     this.playerLight.color = charged ? 0xffa040 : 0x8f7dff;
-    this.playerLight.radius = charged ? 250 : 150;
+    this.playerLight.radius = charged ? 260 : 175;
     this.playerLight.flicker = charged ? 0.06 : 0.02;
     this.playerLight.glowAlpha = charged ? 0.35 : 0.22;
     this.chargeTrail.emitting = charged;
 
+    this.updateAtmosphere(time, dt);
     this.parallax.update(this.cameras.main);
     this.darkness.update(time, dt);
   }
@@ -669,7 +743,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private openDoors() {
     this.cameras.main.shake(500, 0.004);
     audio.sfx('door');
-    bus.emit('ui:toast', { title: 'The beacons answer', body: 'Somewhere a stone door grinds open.' });
+    bus.emit('ui:toast', { title: T.toast.beacons[0], body: T.toast.beacons[1] });
     (this.doors.getChildren() as Tile[]).forEach((d, i) => {
       d.setTexture('door_on');
       this.time.delayedCall(200 + i * 120, () => {
@@ -894,12 +968,12 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     if (item.ent.kind === 'kineticShard') {
       st.powers.dash = true;
       this.player.dashEnabled = true;
-      bus.emit('ui:toast', { title: 'Kinetic Surge awakened', body: 'Press Shift or K to dash, even in mid-air. Dash into cracked walls and shielded bandits.' });
+      bus.emit('ui:toast', { title: T.toast.kinetic[0], body: T.toast.kinetic[1] });
     } else {
       st.maxHealth += 1;
       st.health = st.maxHealth;
       st.shards += 1;
-      bus.emit('ui:toast', { title: 'Heart shard', body: 'Your maximum health grows by one.' });
+      bus.emit('ui:toast', { title: T.toast.heart[0], body: T.toast.heart[1] });
     }
     item.destroy();
     this.emitHud();
@@ -925,14 +999,14 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
           this.emitHud();
           audio.sfx('checkpoint');
           this.sparks(s.x, s.y, 0xffd27a, 12);
-          if (changed) bus.emit('ui:toast', { title: 'Rested at the campfire', body: 'Progress saved. You will return here if you fall.' });
+          if (changed) bus.emit('ui:toast', { title: T.toast.campfire[0], body: T.toast.campfire[1] });
           else if (healed) this.sparks(px, py, 0xff5a7a, 8);
           session.save();
         }
       }
     }
     // signs
-    let text: string | null = null;
+    let text: Bi | null = null;
     for (const s of this.signs) if (Math.abs(px - s.x) < 44 && Math.abs(py - s.y) < 48) text = s.text;
     if (text !== this.currentSign) {
       this.currentSign = text;
@@ -946,7 +1020,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       this.gateOpen = true;
       this.cameras.main.shake(600, 0.006);
       audio.sfx('door');
-      bus.emit('ui:toast', { title: 'The gate breaks open', body: 'The patrol is scattered. The road to the fortress lies ahead.' });
+      bus.emit('ui:toast', { title: T.toast.gate[0], body: T.toast.gate[1] });
       (this.gates.getChildren() as Tile[]).forEach((g, i) => {
         (g.body as Phaser.Physics.Arcade.StaticBody).enable = false;
         this.blocked.delete(`${g.ent!.tx},${g.ent!.ty}`);
@@ -1035,7 +1109,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     if (!this.player.isDashing || time - this.lastGhost < 28) return;
     this.lastGhost = time;
     const s = this.player.sprite;
-    const g = this.add.image(s.x, s.y, 'hero', s.frame.name).setFlipX(s.flipX).setTint(0x9b8cff).setAlpha(0.55).setDepth(19).setBlendMode('ADD');
+    const g = this.add.image(s.x, s.y, 'hero', s.frame.name).setOrigin(0.5, 1).setRotation(s.rotation).setFlipX(s.flipX).setTint(0x9b8cff).setAlpha(0.55).setDepth(19).setBlendMode('ADD');
     this.tweens.add({ targets: g, alpha: 0, duration: 220, onComplete: () => g.destroy() });
   }
 
